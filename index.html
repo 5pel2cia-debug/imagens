@@ -3,23 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carregando Script...</title>
+    <title>Cavalaria</title>
     <style>
+        /* Reset e ocupação total da tela */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body, html {
+
+        html, body {
+            height: 100%;           /* garante que o body ocupe toda altura */
+            width: 100%;
+            overflow: hidden;       /* evita scroll duplicado */
+        }
+
+        /* Container principal ocupa 100% do body */
+        #conteudo {
             height: 100%;
             width: 100%;
-            overflow: hidden; /* Evita barras de rolagem duplas */
         }
+
+        /* Iframe ocupa 100% do container */
         iframe {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;         /* remove espaço extra inline */
         }
+
+        /* Estilos para mensagem de erro/instrução */
         .mensagem {
             font-family: Arial, sans-serif;
             text-align: center;
@@ -53,37 +66,29 @@
         // URL base do Google Apps Script (sem parâmetros)
         const BASE_URL = 'https://script.google.com/macros/s/AKfycbwZnyN-qG5vClvUH0CZXFvqx7vhrDS_fwYjWQjPnbgFiycxsr3e2WkJjL8czs1ouuKY7Q/exec';
 
-        // Obtém toda a string de consulta da URL atual (ex: "?cod=123&funcao=escala")
         const queryString = window.location.search;
-
-        // Elemento onde vamos injetar o iframe
         const container = document.getElementById('conteudo');
 
         if (queryString) {
-            // Monta a URL completa com os parâmetros recebidos
             const urlCompleta = BASE_URL + queryString;
-
-            // Cria o iframe
             const iframe = document.createElement('iframe');
             iframe.src = urlCompleta;
-            iframe.title = "Google Apps Script";
-            iframe.setAttribute('allow', 'geolocation; microphone; camera; midi; encrypted-media'); // opcional, dependendo do que seu script precisa
+            iframe.title = "Cavalaria";
+            // Permissões adicionais, se necessário
+            iframe.setAttribute('allow', 'geolocation; microphone; camera; midi; encrypted-media');
 
-            // Remove a mensagem de carregamento e insere o iframe
             container.innerHTML = '';
             container.appendChild(iframe);
         } else {
-            // Nenhum parâmetro informado – exibe instruções
-            container.innerHTML = `
-                <div class="mensagem erro">
-                    <h2>⚠️ Nenhum parâmetro foi informado</h2>
-                    <p>Use a URL no formato:</p>
-                    <p><code>https://SEU_USUARIO.github.io/SEU_REPOSITORIO/?cod=VALOR</code></p>
-                    <p>ou</p>
-                    <p><code>https://SEU_USUARIO.github.io/SEU_REPOSITORIO/?funcao=escala&teste=1</code></p>
-                    <p>Os parâmetros serão repassados ao Google Apps Script dentro do iframe.</p>
-                </div>
-            `;
+           const MENU_URL = 'https://script.google.com/macros/s/AKfycby9ko-8aCrNG3nhu8uT8j1xfcN9gmNW1-vEZr18crj5/dev?funcao=menu';
+            const iframe = document.createElement('iframe');
+            iframe.src = MENU_URL;
+            iframe.title = "Cavalaria";
+            // Permissões adicionais, se necessário
+            iframe.setAttribute('allow', 'geolocation; microphone; camera; midi; encrypted-media');
+
+            container.innerHTML = '';
+            container.appendChild(iframe);
         }
     </script>
 </body>
