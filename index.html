@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirecionando...</title>
+    <script>
+        // URL base do seu script (sem nenhum parâmetro)
+        const BASE_URL = 'https://script.google.com/macros/s/AKfycbwZnyN-qG5vClvUH0CZXFvqx7vhrDS_fwYjWQjPnbgFiycxsr3e2WkJjL8czs1ouuKY7Q/exec';
+
+        // Captura a string de consulta da URL atual (ex: "?cod=123&funcao=escala")
+        const queryString = window.location.search;
+
+        if (queryString) {
+            // Constrói a URL final com os mesmos parâmetros
+            const redirectUrl = BASE_URL + queryString;
+            // Redireciona (substitui o histórico para não voltar à página de redirecionamento)
+            window.location.replace(redirectUrl);
+        } else {
+            // Se nenhum parâmetro for informado, exibe uma mensagem 
+            document.body.innerHTML = `
+                <h2>Parâmetro não informado</h2>
+                <p>Use a URL no formato:<br>
+                <code>https://SEU_USUARIO.github.io/imagens/?cod=123</code><br>
+                ou<br>
+                <code>https://SEU_USUARIO.github.io/imagens/?funcao=escala&teste=1</code>
+                </p>
+            `;
+        }
+    </script>
+</head>
+<body>
+    <p>Carregando..</p>
+</body>
+</html>
