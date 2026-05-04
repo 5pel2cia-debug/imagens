@@ -48,12 +48,18 @@
         const queryString = window.location.search;
         const container = document.getElementById('conteudo');
 
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.titulo) {
-                document.title = event.data.titulo;
-                console.log('Título alterado para:', event.data.titulo);
+        function atualizarTituloPorHash() {
+            let hash = window.location.hash.substring(1);
+            if (hash) {
+                try {
+                    document.title = decodeURIComponent(hash);
+                    console.log('📌 Título definido via hash:', document.title);
+                } catch(e) {}
             }
-        });
+        }
+
+        window.addEventListener('hashchange', atualizarTituloPorHash);
+        atualizarTituloPorHash(); 
 
         function criarIframe(url) {
             const iframe = document.createElement('iframe');
