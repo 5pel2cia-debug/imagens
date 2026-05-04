@@ -49,8 +49,6 @@
         const container = document.getElementById('conteudo');
 
         window.addEventListener('message', function(event) {
-            // Opcional: verifique a origem da mensagem (para segurança)
-            // if (event.origin !== 'https://script.google.com') return;
             if (event.data && event.data.titulo) {
                 document.title = event.data.titulo;
                 console.log('Título alterado para:', event.data.titulo);
