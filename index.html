@@ -46,6 +46,7 @@
         const BASE_URL2 = 'https://script.google.com/macros/s/AKfycbzov692VBDnQFqlTJutIpmTjQm0oHN7dYqq3aFl4Yba8-rRcnpqsO1bZP4p2XjQtHBJyw/exec';
         
         const MENU_URL = 'https://script.google.com/macros/s/AKfycbzov692VBDnQFqlTJutIpmTjQm0oHN7dYqq3aFl4Yba8-rRcnpqsO1bZP4p2XjQtHBJyw/exec?funcao=menu';
+         const DR_URL = 'https://script.google.com/macros/s/AKfycbzov692VBDnQFqlTJutIpmTjQm0oHN7dYqq3aFl4Yba8-rRcnpqsO1bZP4p2XjQtHBJyw/exec?funcao=dr';
         const MENU_URL2 = 'https://script.google.com/macros/s/AKfycby9ko-8aCrNG3nhu8uT8j1xfcN9gmNW1-vEZr18crj5/exec?funcao=menu';
 
         const queryString = window.location.search;
@@ -88,10 +89,16 @@
         }
 
         if (queryString) {
-            const urlCompleta = BASE_URL + queryString;
-            const iframe = criarIframe(urlCompleta);
-            container.innerHTML = '';
-            container.appendChild(iframe);
+            if(queryString == 'dr'){
+                const iframe = criarIframe(DR_URL);
+                container.innerHTML = '';
+                container.appendChild(iframe);
+            }else{
+                const urlCompleta = BASE_URL + queryString;
+                const iframe = criarIframe(urlCompleta);
+                container.innerHTML = '';
+                container.appendChild(iframe);
+            }
         } else {
             const iframe = criarIframe(MENU_URL);
             container.innerHTML = '';
