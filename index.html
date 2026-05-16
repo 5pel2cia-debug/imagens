@@ -98,7 +98,7 @@
                 
             }else{
                 const urlCompleta = BASE_URL + queryString;
-                iframe = criarIframe(urlCompleta);
+                const iframe = criarIframe(urlCompleta);
                 container.innerHTML = '';
                 container.appendChild(iframe);
             }
