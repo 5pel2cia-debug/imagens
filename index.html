@@ -90,7 +90,7 @@
 
         if (queryString) {
             const parametros = new URLSearchParams(queryString);
-            const iframe;
+            let iframe;
             if(parametros.get('funcao') === 'dr'){
                  iframe = criarIframe(DR_URL);
                 
