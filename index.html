@@ -90,12 +90,13 @@
 
         if (queryString) {
             const parametros = new URLSearchParams(queryString);
+            const iframe;
             if(parametros.get('funcao') === 'dr'){
-                const iframe = criarIframe(DR_URL);
+                 iframe = criarIframe(DR_URL);
                 
             }else{
                 const urlCompleta = BASE_URL + queryString;
-                const iframe = criarIframe(urlCompleta);
+                iframe = criarIframe(urlCompleta);
                 
             }
             container.innerHTML = '';
