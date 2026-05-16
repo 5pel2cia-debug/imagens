@@ -90,19 +90,21 @@
 
         if (queryString) {
             const parametros = new URLSearchParams(queryString);
-            let iframe;
+            
             if(parametros.get('funcao') === 'dr'){
-                 iframe = criarIframe(DR_URL);
+                const iframe = criarIframe(DR_URL);
+                container.innerHTML = '';
+                container.appendChild(iframe);
                 
             }else{
                 const urlCompleta = BASE_URL + queryString;
                 iframe = criarIframe(urlCompleta);
-                
-            }
-            container.innerHTML = '';
+                container.innerHTML = '';
                 container.appendChild(iframe);
+            }
+            
         } else {
-            const iframe = criarIframe(DR_URL);
+            const iframe = criarIframe(MENU_URL);
             container.innerHTML = '';
             container.appendChild(iframe);
         }
