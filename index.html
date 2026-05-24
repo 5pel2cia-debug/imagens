@@ -55,22 +55,31 @@
         // ========== 1. Listener para receber a mensagem do iframe e fazer o download ==========
         window.addEventListener('message', function(event) {
             if (event.data && event.data.type === 'DOWNLOAD_IMAGE') {
-                const { url, filename } = event.data.payload;
+                const { data, filename, type } = event.data.payload;
                 console.log('📸 Download solicitado pelo iframe:', filename);
         
-                // Cria um elemento flutuante (overlay) com botão
+                // Recria o Blob a partir do ArrayBuffer
+                const blob = new Blob([data], { type: type });
+                const url = URL.createObjectURL(blob);
+        
+                // Cria overlay com botão para confirmação
                 const overlay = document.createElement('div');
-                overlay.style.position = 'fixed';
-                overlay.style.bottom = '20px';
-                overlay.style.left = '0';
-                overlay.style.right = '0';
-                overlay.style.backgroundColor = '#1a237e';
-                overlay.style.color = 'white';
-                overlay.style.padding = '16px';
-                overlay.style.textAlign = 'center';
-                overlay.style.zIndex = '9999999999999999999999999';
-                overlay.style.fontFamily = 'sans-serif';
-                overlay.style.boxShadow = '0 -2px 10px rgba(0,0,0,0.2)';
+                overlay.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    left: 20px;
+                    right: 20px;
+                    background: rgba(26, 35, 126, 0.95);
+                    color: white;
+                    padding: 16px;
+                    border-radius: 16px;
+                    text-align: center;
+                    z-index: 999999;
+                    font-family: sans-serif;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255,255,255,0.2);
+                `;
                 overlay.innerHTML = `
                     <p style="margin: 0 0 10px 0;">Clique no botão para salvar a imagem:</p>
                     <button id="btn-salvar-imagem" style="background: #4caf50; border: none; padding: 10px 20px; border-radius: 40px; color: white; font-size: 16px; cursor: pointer;">💾 Salvar Imagem</button>
@@ -83,6 +92,7 @@
         
                 const finalizar = () => {
                     if (overlay && overlay.parentNode) overlay.remove();
+                    URL.revokeObjectURL(url);
                 };
         
                 salvarBtn.addEventListener('click', () => {
@@ -92,14 +102,10 @@
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    setTimeout(() => URL.revokeObjectURL(url), 100);
                     finalizar();
                 });
         
-                cancelarBtn.addEventListener('click', () => {
-                    URL.revokeObjectURL(url);
-                    finalizar();
-                });
+                cancelarBtn.addEventListener('click', finalizar);
             }
         });
 
