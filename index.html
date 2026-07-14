@@ -145,6 +145,67 @@
         window.addEventListener('hashchange', atualizarTituloPorHash);
         atualizarTituloPorHash();
 
+        // Função para detectar iPhone/iOS
+        function ehIphone() {
+          return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        }
+        
+        // lógica de carregamento verificando Iphone
+        if (queryString) {
+            const parametros = new URLSearchParams(queryString);
+            const isIphone = ehIphone();
+            
+            if (parametros.get('funcao') === 'dr') {
+                if (isIphone) {
+                    // No iPhone: abre em nova aba ou redireciona
+                    window.open(DR_URL, '_blank');
+                    // Opcional: mantém a página atual com uma mensagem
+                    container.innerHTML = `
+                        <div style="font-family: Arial; text-align: center; padding: 2rem;">
+                            <p>Abrindo em nova aba...</p>
+                            <p><a href="${DR_URL}" target="_blank">Clique aqui se não abrir automaticamente</a></p>
+                        </div>
+                    `;
+                } else {
+                    // Desktop: usa iframe
+                    const iframe = criarIframe(DR_URL);
+                    container.innerHTML = '';
+                    container.appendChild(iframe);
+                }
+            } else {
+                // Outros casos...
+                const urlCompleta = BASE_URL + queryString;
+                if (isIphone) {
+                    window.open(urlCompleta, '_blank');
+                    container.innerHTML = `
+                        <div style="font-family: Arial; text-align: center; padding: 2rem;">
+                            <p>Abrindo em nova aba...</p>
+                        </div>
+                    `;
+                } else {
+                    const iframe = criarIframe(urlCompleta);
+                    container.innerHTML = '';
+                    container.appendChild(iframe);
+                }
+            }
+        } else {
+            // Sem parâmetros: menu
+            if (ehIphone()) {
+                window.open(MENU_URL, '_blank');
+                container.innerHTML = `
+                    <div style="font-family: Arial; text-align: center; padding: 2rem;">
+                        <p>Abrindo o menu em nova aba...</p>
+                    </div>
+                `;
+            } else {
+                const iframe = criarIframe(MENU_URL);
+                container.innerHTML = '';
+                container.appendChild(iframe);
+            }
+        }
+
+        //Logica de carregamento sem verificar iphone
+        /*
         if (queryString) {
             const parametros = new URLSearchParams(queryString);
             if(parametros.get('funcao') === 'dr'){
@@ -162,6 +223,7 @@
             container.innerHTML = '';
             container.appendChild(iframe);
         }
+        */
     </script>
 </body>
 </html>
