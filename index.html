@@ -149,6 +149,18 @@
         function ehIphone() {
           return /iPhone|iPad|iPod/i.test(navigator.userAgent);
         }
+
+        function criarIframeParaIphone(url) {
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.title = "Cavalaria";
+            iframe.setAttribute('allow', 
+                'geolocation; microphone; camera; midi; encrypted-media'
+            );
+            // Remove o sandbox completamente (ou teste com apenas allow-same-origin)
+            // iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups');
+            return iframe;
+        }
         
         // lógica de carregamento verificando Iphone
         if (queryString) {
@@ -191,12 +203,17 @@
         } else {
             // Sem parâmetros: menu
             if (ehIphone()) {
+               const iframe = criarIframeParaIphone(MENU_URL);
+                container.innerHTML = '';
+                container.appendChild(iframe);
+                /*
                 window.open(MENU_URL, '_blank');
                 container.innerHTML = `
                     <div style="font-family: Arial; text-align: center; padding: 2rem;">
                         <p>Abrindo o menu em nova aba...</p>
                     </div>
                 `;
+                */
             } else {
                 const iframe = criarIframe(MENU_URL);
                 container.innerHTML = '';
