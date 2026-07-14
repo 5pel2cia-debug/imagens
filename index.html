@@ -32,6 +32,53 @@
             padding: 2rem;
             color: #333;
         }
+        /* Estilos para o botão do iPhone */
+        .iphone-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .iphone-container h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #1a237e;
+        }
+        .iphone-container p {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .btn-acessar-iphone {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white;
+            border: none;
+            padding: 18px 60px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            touch-action: manipulation;
+            box-shadow: 0 4px 15px rgba(26, 35, 126, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-acessar-iphone:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(26, 35, 126, 0.3);
+        }
+        .iphone-container .info {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .erro-iphone {
+            color: #d32f2f;
+            margin-top: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -50,6 +97,7 @@
         const MENU_URL2 = 'https://script.google.com/macros/s/AKfycby9ko-8aCrNG3nhu8uT8j1xfcN9gmNW1-vEZr18crj5/exec?funcao=menu';
 
         const queryString = window.location.search;
+        const parametros = new URLSearchParams(queryString);
         const container = document.getElementById('conteudo');
 
         // ========== 1. Listener para receber a mensagem do iframe e fazer o download ==========
@@ -131,7 +179,112 @@
             return iframe;
         }
 
-        // ========== 3. Carrega o conteúdo correto ==========
+        // ========== 3. Função para determinar a URL alvo ==========
+        function getUrlAlvo() {
+            if (queryString) {
+                if (parametros.get('funcao') === 'dr') {
+                    return DR_URL;
+                } else {
+                    return BASE_URL + queryString;
+                }
+            } else {
+                return MENU_URL;
+            }
+        }
+
+        // ========== 4. Função para carregar o iframe (usada no iPhone) ==========
+        function carregarIframeIphone(url) {
+            try {
+                const iframe = criarIframe(url);
+                container.innerHTML = '';
+                container.appendChild(iframe);
+            } catch (error) {
+                console.error('Erro ao carregar iframe no iPhone:', error);
+                // Fallback: tenta abrir em nova aba
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.8);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 999999;
+                    color: white;
+                    font-family: sans-serif;
+                    padding: 20px;
+                `;
+                overlay.innerHTML = `
+                    <h2 style="margin-bottom:20px;">Não foi possível carregar</h2>
+                    <p style="margin-bottom:20px;text-align:center;">Clique no botão abaixo para abrir diretamente:</p>
+                    <a href="${url}" target="_blank" style="
+                        background: #4caf50;
+                        color: white;
+                        padding: 16px 40px;
+                        border-radius: 50px;
+                        text-decoration: none;
+                        font-size: 1.2rem;
+                    ">🔗 Abrir diretamente</a>
+                    <button onclick="this.parentElement.remove()" style="
+                        margin-top: 20px;
+                        background: transparent;
+                        border: 1px solid white;
+                        color: white;
+                        padding: 10px 30px;
+                        border-radius: 50px;
+                        cursor: pointer;
+                    ">Fechar</button>
+                `;
+                document.body.appendChild(overlay);
+            }
+        }
+
+        // ========== 5. Função para mostrar tela de boas-vindas no iPhone ==========
+        function mostrarTelaIphone() {
+            const urlAlvo = getUrlAlvo();
+            
+            // Cria a tela de boas-vindas
+            const tela = document.createElement('div');
+            tela.className = 'iphone-container';
+            tela.id = 'iphone-tela';
+            tela.innerHTML = `
+                <h2>⚔️ Cavalaria</h2>
+                <p>Toque no botão para acessar o sistema</p>
+                <button class="btn-acessar-iphone" id="btnAcessarIphone">🔓 Acessar</button>
+                <div class="erro-iphone" id="erro-iphone"></div>
+                <div class="info">Sua conexão é segura</div>
+            `;
+            
+            // Substitui o conteúdo
+            container.innerHTML = '';
+            container.appendChild(tela);
+            
+            // Evento do botão
+            const btn = document.getElementById('btnAcessarIphone');
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                btn.textContent = '⏳ Carregando...';
+                btn.disabled = true;
+                carregarIframeIphone(urlAlvo);
+            });
+            btn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                btn.textContent = '⏳ Carregando...';
+                btn.disabled = true;
+                carregarIframeIphone(urlAlvo);
+            });
+        }
+
+        // ========== 6. Função para detectar iPhone/iOS ==========
+        function ehIphone() {
+            return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        }
+
+        // ========== 7. Lógica principal ==========
         function atualizarTituloPorHash() {
             let hash = window.location.hash.substring(1);
             if (hash) {
@@ -145,102 +298,29 @@
         window.addEventListener('hashchange', atualizarTituloPorHash);
         atualizarTituloPorHash();
 
-        // Função para detectar iPhone/iOS
-        function ehIphone() {
-          return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        }
-
-        function criarIframeParaIphone(url) {
-            const iframe = document.createElement('iframe');
-            iframe.src = url;
-            iframe.title = "Cavalaria";
-            iframe.setAttribute('allow', 
-                'geolocation; microphone; camera; midi; encrypted-media'
-            );
-            // Remove o sandbox completamente (ou teste com apenas allow-same-origin)
-            // iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups');
-            return iframe;
-        }
-        
-        // lógica de carregamento verificando Iphone
-        if (queryString) {
-            const parametros = new URLSearchParams(queryString);
-            const isIphone = ehIphone();
-            
-            if (parametros.get('funcao') === 'dr') {
-                if (isIphone) {
-                    // No iPhone: abre em nova aba ou redireciona
-                    window.open(DR_URL, '_blank');
-                    // Opcional: mantém a página atual com uma mensagem
-                    container.innerHTML = `
-                        <div style="font-family: Arial; text-align: center; padding: 2rem;">
-                            <p>Abrindo em nova aba...</p>
-                            <p><a href="${DR_URL}" target="_blank">Clique aqui se não abrir automaticamente</a></p>
-                        </div>
-                    `;
-                } else {
-                    // Desktop: usa iframe
+        // ========== EXECUÇÃO PRINCIPAL ==========
+        if (ehIphone()) {
+            console.log('📱 Dispositivo iPhone detectado - Mostrando tela de acesso');
+            mostrarTelaIphone();
+        } else {
+            console.log('💻 Desktop/Android - Carregando iframe diretamente');
+            if (queryString) {
+                if (parametros.get('funcao') === 'dr') {
                     const iframe = criarIframe(DR_URL);
                     container.innerHTML = '';
                     container.appendChild(iframe);
-                }
-            } else {
-                // Outros casos...
-                const urlCompleta = BASE_URL + queryString;
-                if (isIphone) {
-                    window.open(urlCompleta, '_blank');
-                    container.innerHTML = `
-                        <div style="font-family: Arial; text-align: center; padding: 2rem;">
-                            <p>Abrindo em nova aba...</p>
-                        </div>
-                    `;
                 } else {
+                    const urlCompleta = BASE_URL + queryString;
                     const iframe = criarIframe(urlCompleta);
                     container.innerHTML = '';
                     container.appendChild(iframe);
                 }
-            }
-        } else {
-            // Sem parâmetros: menu
-            if (ehIphone()) {
-               const iframe = criarIframeParaIphone(MENU_URL);
-                container.innerHTML = '';
-                container.appendChild(iframe);
-                /*
-                window.open(MENU_URL, '_blank');
-                container.innerHTML = `
-                    <div style="font-family: Arial; text-align: center; padding: 2rem;">
-                        <p>Abrindo o menu em nova aba...</p>
-                    </div>
-                `;
-                */
             } else {
                 const iframe = criarIframe(MENU_URL);
                 container.innerHTML = '';
                 container.appendChild(iframe);
             }
         }
-
-        //Logica de carregamento sem verificar iphone
-        /*
-        if (queryString) {
-            const parametros = new URLSearchParams(queryString);
-            if(parametros.get('funcao') === 'dr'){
-                const iframe = criarIframe(DR_URL);
-                container.innerHTML = '';
-                container.appendChild(iframe);
-            } else {
-                const urlCompleta = BASE_URL + queryString;
-                const iframe = criarIframe(urlCompleta);
-                container.innerHTML = '';
-                container.appendChild(iframe);
-            }
-        } else {
-            const iframe = criarIframe(MENU_URL);
-            container.innerHTML = '';
-            container.appendChild(iframe);
-        }
-        */
     </script>
 </body>
 </html>
