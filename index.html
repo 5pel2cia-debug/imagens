@@ -116,6 +116,9 @@
 
     <script>
         const BASE_URL = 'https://script.google.com/macros/s/AKfycbzov692VBDnQFqlTJutIpmTjQm0oHN7dYqq3aFl4Yba8-rRcnpqsO1bZP4p2XjQtHBJyw/exec';
+        const URL_PUBLICA = 'https://script.google.com/macros/s/AKfycbwZnyN-qG5vClvUH0CZXFvqx7vhrDS_fwYjWQjPnbgFiycxsr3e2WkJjL8czs1ouuKY7Q/exec';
+
+        const URL_PUBLICA_ESCALA = 'https://script.google.com/macros/s/AKfycbwZnyN-qG5vClvUH0CZXFvqx7vhrDS_fwYjWQjPnbgFiycxsr3e2WkJjL8czs1ouuKY7Q/exec/dev?funcao=escala';
         
         const MENU_URL = 'https://script.google.com/macros/s/AKfycbzov692VBDnQFqlTJutIpmTjQm0oHN7dYqq3aFl4Yba8-rRcnpqsO1bZP4p2XjQtHBJyw/exec?funcao=menu';
         const DR_URL = 'https://script.google.com/macros/s/AKfycbzov692VBDnQFqlTJutIpmTjQm0oHN7dYqq3aFl4Yba8-rRcnpqsO1bZP4p2XjQtHBJyw/exec?funcao=dr';
@@ -209,6 +212,9 @@
             if (queryString) {
                 if (parametros.get('funcao') === 'dr') {
                     return DR_URL;
+                } else if (parametros.get('funcao') === 'escala') {
+                    return URL_PUBLICA_ESCALA;
+                    
                 } else {
                     return BASE_URL + queryString;
                 }
@@ -314,6 +320,11 @@
                     const iframe = criarIframe(DR_URL);
                     container.innerHTML = '';
                     container.appendChild(iframe);
+
+                } else if (parametros.get('funcao') === 'escala') {
+                    const iframe = criarIframe(URL_PUBLICA_ESCALA);
+                    container.innerHTML = '';
+                    container.appendChild(iframe);   
                 } else {
                     const urlCompleta = BASE_URL + queryString;
                     const iframe = criarIframe(urlCompleta);
