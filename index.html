@@ -185,17 +185,59 @@
             }
         });
 
-        // ========== 2. Função para criar o iframe (mantida igual) ==========
+        (function() {
+          let backSentinelAtivo = false;
+          let backPressCount = 0;
+          const MAX_BACK_PRESSES = 2;
+        
+          function handlePopState() {
+            if (!backSentinelAtivo) return;
+        
+            backPressCount++;
+        
+            if (backPressCount >= MAX_BACK_PRESSES) {
+              backSentinelAtivo = false;
+              window.removeEventListener('popstate', handlePopState);
+              history.back();
+              return;
+            }
+        
+            // Re-empurra o sentinel
+            history.pushState({ __shellBackSentinel: true }, '', location.href);
+          }
+        
+          window.addEventListener('message', function(event) {
+            const data = event.data;
+            if (!data || typeof data !== 'object') return;
+        
+            if (data.type === 'ENABLE_BACK_CONTROL' && !backSentinelAtivo) {
+              backSentinelAtivo = true;
+              backPressCount = 0;
+              history.pushState({ __shellBackSentinel: true }, '', location.href);
+              window.addEventListener('popstate', handlePopState);
+              console.log('🛡️ [Shell] Controle do voltar ATIVADO.');
+            }
+        
+            if (data.type === 'DISABLE_BACK_CONTROL' && backSentinelAtivo) {
+              backSentinelAtivo = false;
+              window.removeEventListener('popstate', handlePopState);
+              console.log('🔓 [Shell] Controle do voltar DESATIVADO.');
+            }
+          });
+        })();
+
+        // ========== 2. Função para criar o iframe  ==========
         function criarIframe(url) {
             const iframe = document.createElement('iframe');
             iframe.src = url;
             iframe.title = "Cavalaria";
             iframe.setAttribute('allow', 
-                'cookies; ' +
-                'storage-access-by-user-activation; ' +
-                'cross-origin-isolated; ' +
-                'same-origin-allow-popups; ' +
-                'geolocation; microphone; camera; midi; encrypted-media'
+              'cookies; ' +
+              'storage-access-by-user-activation; ' +
+              'cross-origin-isolated; ' +
+              'same-origin-allow-popups; ' +
+              'fullscreen; ' +   // ← ADICIONE ESTA LINHA
+              'geolocation; microphone; camera; midi; encrypted-media'
             );
             iframe.setAttribute('sandbox', 
                 'allow-same-origin ' +
