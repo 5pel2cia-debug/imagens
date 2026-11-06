@@ -185,45 +185,167 @@
             }
         });
 
+       // ========== CONTROLE DO BOTÃO VOLTAR com confirmação de saída ==========
         (function() {
-          let backSentinelAtivo = false;
-          let backPressCount = 0;
-          const MAX_BACK_PRESSES = 2;
+            let backSentinelAtivo = false;
+            let backPressCount = 0;
+            let confirmDialogOpen = false;
+            const MAX_BACK_PRESSES = 2;
+            let toastTimeout = null;
         
-          function handlePopState() {
-            if (!backSentinelAtivo) return;
+            // ---------- Toast ----------
+            function showToast(msg) {
+                let el = document.getElementById('__shellToast');
+                if (el) el.remove();
+                if (toastTimeout) clearTimeout(toastTimeout);
         
-            backPressCount++;
-        
-            if (backPressCount >= MAX_BACK_PRESSES) {
-              backSentinelAtivo = false;
-              window.removeEventListener('popstate', handlePopState);
-              history.back();
-              return;
+                el = document.createElement('div');
+                el.id = '__shellToast';
+                el.textContent = msg;
+                el.style.cssText = `
+                    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+                    background: rgba(30, 41, 59, 0.95); color: #fff;
+                    padding: 12px 24px; border-radius: 40px;
+                    font-size: 0.9rem; font-weight: 500;
+                    z-index: 2147483646; text-align: center;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    font-family: system-ui, -apple-system, sans-serif;
+                    pointer-events: none; opacity: 0;
+                    transition: opacity 0.3s ease;
+                `;
+                document.body.appendChild(el);
+                requestAnimationFrame(() => el.style.opacity = '1');
+                toastTimeout = setTimeout(() => {
+                    el.style.opacity = '0';
+                    setTimeout(() => { if (el.parentNode) el.remove(); }, 300);
+                }, 2000);
             }
         
-            // Re-empurra o sentinel
-            history.pushState({ __shellBackSentinel: true }, '', location.href);
-          }
+            // ---------- Modal de confirmação ----------
+            function showExitDialog() {
+                if (confirmDialogOpen) return;
+                confirmDialogOpen = true;
         
-          window.addEventListener('message', function(event) {
-            const data = event.data;
-            if (!data || typeof data !== 'object') return;
+                const overlay = document.createElement('div');
+                overlay.id = '__exitDialog';
+                overlay.style.cssText = `
+                    position: fixed; inset: 0;
+                    background: rgba(0,0,0,0.55);
+                    display: flex; align-items: center; justify-content: center;
+                    z-index: 2147483647;
+                    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+                    opacity: 0; transition: opacity 0.2s ease;
+                `;
+                overlay.innerHTML = `
+                    <div style="
+                        background: #fff; border-radius: 20px; padding: 24px;
+                        max-width: 90%; width: 360px;
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+                        text-align: center;
+                    ">
+                        <h3 style="margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 700; color: #1e293b;">
+                            Fechar aplicativo?
+                        </h3>
+                        <p style="margin: 0 0 22px 0; font-size: 0.92rem; color: #64748b; line-height: 1.4;">
+                            Deseja realmente sair do aplicativo?
+                        </p>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="button" data-act="cancel" style="
+                                flex: 1; padding: 13px; border-radius: 40px; border: none;
+                                font-size: 1rem; font-weight: 600; cursor: pointer;
+                                background: #f1f5f9; color: #1e293b; font-family: inherit;
+                            ">Cancelar</button>
+                            <button type="button" data-act="exit" style="
+                                flex: 1; padding: 13px; border-radius: 40px; border: none;
+                                font-size: 1rem; font-weight: 600; cursor: pointer;
+                                background: #f44336; color: #fff; font-family: inherit;
+                            ">Fechar</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                requestAnimationFrame(() => overlay.style.opacity = '1');
         
-            if (data.type === 'ENABLE_BACK_CONTROL' && !backSentinelAtivo) {
-              backSentinelAtivo = true;
-              backPressCount = 0;
-              history.pushState({ __shellBackSentinel: true }, '', location.href);
-              window.addEventListener('popstate', handlePopState);
-              console.log('🛡️ [Shell] Controle do voltar ATIVADO.');
+                overlay.querySelector('[data-act="cancel"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    cancelExit();
+                });
+                overlay.querySelector('[data-act="exit"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    confirmExit();
+                });
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) cancelExit();
+                });
             }
         
-            if (data.type === 'DISABLE_BACK_CONTROL' && backSentinelAtivo) {
-              backSentinelAtivo = false;
-              window.removeEventListener('popstate', handlePopState);
-              console.log('🔓 [Shell] Controle do voltar DESATIVADO.');
+            function removeDialog() {
+                const el = document.getElementById('__exitDialog');
+                if (el) {
+                    el.style.opacity = '0';
+                    setTimeout(() => { if (el.parentNode) el.remove(); }, 200);
+                }
+                confirmDialogOpen = false;
             }
-          });
+        
+            function cancelExit() {
+                removeDialog();
+                backPressCount = 0;
+                // Garante que voltamos a um estado protegido (sentinel ativo)
+                history.pushState({ __shellBackSentinel: true }, '', location.href);
+            }
+        
+            function confirmExit() {
+                removeDialog();
+                backSentinelAtivo = false;
+                window.removeEventListener('popstate', handlePopState);
+                // Estamos em Sentinel. go(-2) vai para ShellPage depois Entry0 → fecha/navega fora.
+                history.go(-2);
+            }
+        
+            // ---------- Popstate handler ----------
+            function handlePopState() {
+                if (!backSentinelAtivo) return;
+        
+                // Se o modal está aberto e o usuário aperta voltar = cancelar
+                if (confirmDialogOpen) {
+                    cancelExit();
+                    return;
+                }
+        
+                backPressCount++;
+        
+                if (backPressCount < MAX_BACK_PRESSES) {
+                    // 1ª pressão: re-empurra sentinel e avisa
+                    history.pushState({ __shellBackSentinel: true }, '', location.href);
+                    showToast('Pressione voltar novamente para sair');
+                    return;
+                }
+        
+                // 2ª pressão: re-empurra sentinel (protege) e mostra modal
+                history.pushState({ __shellBackSentinel: true }, '', location.href);
+                showExitDialog();
+            }
+        
+            // ---------- Message listener ----------
+            window.addEventListener('message', function(event) {
+                const data = event.data;
+                if (!data || typeof data !== 'object') return;
+        
+                if (data.type === 'ENABLE_BACK_CONTROL' && !backSentinelAtivo) {
+                    backSentinelAtivo = true;
+                    backPressCount = 0;
+                    history.pushState({ __shellBackSentinel: true }, '', location.href);
+                    window.addEventListener('popstate', handlePopState);
+                    console.log('🛡️ [Shell] Controle do voltar ATIVADO.');
+                }
+        
+                if (data.type === 'DISABLE_BACK_CONTROL' && backSentinelAtivo) {
+                    backSentinelAtivo = false;
+                    window.removeEventListener('popstate', handlePopState);
+                    console.log('🔓 [Shell] Controle do voltar DESATIVADO.');
+                }
+            });
         })();
 
         // ========== 2. Função para criar o iframe  ==========
