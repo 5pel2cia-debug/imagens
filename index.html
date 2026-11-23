@@ -373,18 +373,30 @@
 
         // ========== 3. Função para determinar a URL alvo ==========
         function getUrlAlvo() {
-            if (queryString) {
-                if (parametros.get('funcao') === 'dr') {
-                    return DR_URL;
-                } else if (parametros.get('funcao') === 'escala') {
-                    return URL_PUBLICA_ESCALA;
-                    
-                } else {
-                    return BASE_URL + queryString;
-                }
-            } else {
-                return MENU_URL;
+            const funcao = parametros.get('funcao');
+            const cod    = parametros.get('cod');
+        
+            if (funcao === 'dr') {
+                return DR_URL;
             }
+        
+            if (funcao === 'escala') {
+                return URL_PUBLICA_ESCALA;
+            }
+        
+            // NOVO: sem 'funcao' mas com 'cod' → URL_PUBLICA?cod=XXXX
+            if (!funcao && cod) {
+                console.log('🔗 [URL] Sem funcao, com cod → URL_PUBLICA');
+                return URL_PUBLICA + '?cod=' + encodeURIComponent(cod);
+            }
+        
+            // Com queryString (mas sem funcao=cod tratado acima) → BASE_URL
+            if (queryString) {
+                return BASE_URL + queryString;
+            }
+        
+            // Sem nada → MENU
+            return MENU_URL;
         }
 
         // ========== 4. Função para iPhone: abrir em nova aba ==========
