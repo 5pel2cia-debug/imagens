@@ -384,7 +384,6 @@
                 return URL_PUBLICA_ESCALA;
             }
         
-            // NOVO: sem 'funcao' mas com 'cod' → URL_PUBLICA?cod=XXXX
             if (!funcao && cod) {
                 console.log('🔗 [URL] Sem funcao, com cod → URL_PUBLICA');
                 return URL_PUBLICA + '?cod=' + encodeURIComponent(cod);
@@ -491,27 +490,9 @@
             mostrarTelaIphone();
         } else {
             console.log('💻 Desktop/Android - Carregando iframe diretamente');
-            if (queryString) {
-                if (parametros.get('funcao') === 'dr') {
-                    const iframe = criarIframe(DR_URL);
-                    container.innerHTML = '';
-                    container.appendChild(iframe);
-
-                } else if (parametros.get('funcao') === 'escala') {
-                    const iframe = criarIframe(URL_PUBLICA_ESCALA);
-                    container.innerHTML = '';
-                    container.appendChild(iframe);   
-                } else {
-                    const urlCompleta = BASE_URL + queryString;
-                    const iframe = criarIframe(urlCompleta);
-                    container.innerHTML = '';
-                    container.appendChild(iframe);
-                }
-            } else {
-                const iframe = criarIframe(MENU_URL);
-                container.innerHTML = '';
-                container.appendChild(iframe);
-            }
+            const iframe = criarIframe(getUrlAlvo());
+            container.innerHTML = '';
+            container.appendChild(iframe);
         }
     </script>
 </body>
